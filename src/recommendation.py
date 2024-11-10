@@ -1,4 +1,5 @@
 import openai
+import pandas as pd
 from config import OPENAI_API_KEY
 
 openai.api_key = OPENAI_API_KEY
@@ -11,16 +12,18 @@ def generate_dynamic_recommendation(feedback_text, sentiment, topic):
     )
     return response.choices[0].message['content'].strip()
 
-def generate_recommendations(data):
-    print("Generating recommendations...")
-
+def generate_recommendations(data: pd.DataFrame) -> pd.DataFrame:
     def improvement_suggestion(row):
-        if row['Sentiment'] == 'Negative' and 'workload' in row['Topic'].lower():
-            return "Consider reducing workload."
-        elif row['Sentiment'] == 'Negative':
-            return generate_dynamic_recommendation(row['Comments/Feedback'], row['Sentiment'], row['Topic'])
+        if row['Sentiment'] == 'Negative' and isinstance(row['Topic'], str):
+            if 'workload' in row['Topic'].lower():
+                return "Consider reducing the workload for better engagement."
+            elif 'pace' in row['Topic'].lower():
+                return "Consider adjusting the course pace."
         return "No specific recommendation."
-
+    
+    # Ensure 'Recommendation' column is added to the DataFrame
     data['Recommendation'] = data.apply(improvement_suggestion, axis=1)
-    print("Recommendation generation completed.")
+
+    # Return the updated DataFrame with recommendations
     return data
+
