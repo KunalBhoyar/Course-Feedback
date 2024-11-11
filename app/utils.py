@@ -6,6 +6,7 @@ from src.sentiment_analysis import perform_sentiment_analysis
 from src.topic_modeling import extract_topics
 from src.summarization import summarize_feedback
 from src.recommendation import generate_recommendations
+from google.cloud import storage
 
 # Directory for storing processed files
 DATA_DIR = Path("data/processed")
@@ -62,6 +63,26 @@ def run_analysis_pipeline(filepath: Path) -> Path:
 def get_processed_file_path(filename: str) -> Path:
     """Get the path for a processed file by filename."""
     return DATA_DIR / filename
+
+
+BUCKET_NAME = "mlops-feedback-files"
+
+def upload_file_to_gcs(file: UploadFile, destination_blob_name: str) -> str:
+    """Uploads a file to Google Cloud Storage and returns the file URL."""
+    # Initialize a GCS client
+    storage_client = storage.Client()
+    bucket = storage_client.bucket(BUCKET_NAME)
+    blob = bucket.blob(destination_blob_name)
+    
+    # Upload the file to GCS
+    blob.upload_from_file(file.file)
+    
+    # # Make the file publicly accessible (optional)
+    # blob.make_public()
+    
+    # Return the file URL
+    return blob.public_url
+
 
 
 

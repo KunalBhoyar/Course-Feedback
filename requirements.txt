@@ -1,0 +1,13 @@
+fastapi
+uvicorn
+google-cloud-secret-manager
+pandas
+openai
+pathlib
+openai
+gensim
+nltk
+google-cloud-storage
+python-multipart
+openpyxl
+openai

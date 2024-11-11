@@ -1,20 +1,30 @@
 from fastapi import APIRouter, File, UploadFile, HTTPException
-from app.utils import save_file, run_analysis_pipeline, get_processed_file_path
+from app.utils import save_file, run_analysis_pipeline, get_processed_file_path, upload_file_to_gcs
 from fastapi import Form
 from .utils import DATA_DIR
 import os
+import uuid
+
 
 
 
 
 router = APIRouter()
 
-# 1. Upload Endpoint
-@router.post("/upload/")
-async def upload_file(file: UploadFile = File(...)):
-    # Save the uploaded file
-    filepath = save_file(file)
-    return {"message": "File uploaded successfully", "filename": filepath.name}
+
+
+@router.post("/upload")
+async def upload_file(file: UploadFile):
+    if not file.filename:
+        raise HTTPException(status_code=400, detail="No file provided")
+
+    # Generate a unique filename to avoid collisions
+    unique_filename = f"{uuid.uuid4()}_{file.filename}"
+
+    # Upload file to GCS
+    file_url = upload_file_to_gcs(file, unique_filename)
+
+    return {"file_url": file_url, "filename": unique_filename}
 
 # 2. Process Endpoint
 @router.post("/process/")
